@@ -1,0 +1,31 @@
+# ── Secrets ───────────────────────────────────────────────────────────────
+# .env holds SECRET_KEY and the database password. It must never be committed.
+# .env.example is committed on purpose so others know which variables to set.
+.env
+.env.*
+!.env.example
+
+# ── Virtual environment ───────────────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── Test artefacts ────────────────────────────────────────────────────────
+# The test suite runs against a throwaway SQLite file, never PostgreSQL.
+test_users.db
+*.db
+
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ── Editors / OS ──────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
