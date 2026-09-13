@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI
 from app.db.base import Base
 from app.db.session import engine
@@ -5,6 +6,7 @@ from app.api.routes import auth
 from app.api.routes import users
 from app.api.routes import stats
 from app.api.routes import admin
+from app.api.routes import filters
 from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
@@ -18,6 +20,7 @@ app = FastAPI(
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(filters.router)
 app.include_router(users.router)
 app.include_router(stats.router)
 app.include_router(admin.router)

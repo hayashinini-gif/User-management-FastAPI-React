@@ -51,3 +51,19 @@ export interface PaginatedUsers {
   skip: number
   limit: number
 }
+
+
+/**
+ * What the AI interpreter returns.
+ * Mirrors FilterSuggestion in backend/app/schemas/filters.py — change both together.
+ * `null` means "the request didn't mention this filter".
+ */
+export interface FilterSuggestion {
+  search: string | null
+  type: UserRole | null
+  status: UserStatusFilter | null
+  sort_by: UserSortKey | null
+  sort_order: SortOrder | null
+  /** Things the request asked for that this API cannot do, e.g. ["filtering by city"]. */
+  unsupported: string[]
+}

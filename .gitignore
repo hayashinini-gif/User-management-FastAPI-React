@@ -25,3 +25,6 @@ Thumbs.db
 
 # ── Scratch ───────────────────────────────────────────────────────────────
 _to_delete/
+
+# ── Personal study notes, not part of the project ────────────────────────
+docs/

@@ -4,7 +4,6 @@ import { useToast } from '../context/ToastContext'
 import { usersAPI } from '../services/api'
 import { apiErrorMessage, formatDate, fullName, initials, orDash } from '../lib/format'
 import { useDebounced } from '../lib/useDebounced'
-import type { SortOrder, User, UserRole, UserSortKey } from '../types/user'
 import { UserDetailsModal } from '../components/users/UserDetailsModal'
 import { UserFormModal } from '../components/users/UserFormModal'
 import { Avatar } from '../components/ui/Avatar'
@@ -20,6 +19,8 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { Pagination } from '../components/ui/Pagination'
 import { SearchInput } from '../components/ui/SearchInput'
 import { Select } from '../components/ui/Select'
+import type { FilterSuggestion, SortOrder, User, UserRole, UserSortKey, UserStatusFilter } from '../types/user'
+import { NaturalLanguageFilter } from '../components/users/NaturalLanguageFilter'
 import {
   EyeIcon,
   MoreIcon,
@@ -57,6 +58,7 @@ export const Users = () => {
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [status, setStatus] = useState<UserStatusFilter>('active')
 
   /* Searching and paging happen on the server now, so the browser only ever
      holds one page. Responses can arrive out of order when someone types
@@ -76,6 +78,7 @@ export const Users = () => {
         type: role === ALL ? undefined : role,
         sortBy,
         sortOrder,
+        status,
       })
       if (id !== requestId.current) return
       setRows(data.items)
@@ -86,7 +89,7 @@ export const Users = () => {
     } finally {
       if (id === requestId.current) setLoading(false)
     }
-  }, [page, debouncedSearch, role, sortBy, sortOrder])
+  }, [page, debouncedSearch, role, sortBy, sortOrder, status])
 
   useEffect(() => {
     void load()
@@ -96,13 +99,37 @@ export const Users = () => {
   // page 4 of the old result set is meaningless against a new one.
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch, role, sortBy, sortOrder])
+  }, [debouncedSearch, role, sortBy, sortOrder, status])
 
-  const filtersActive = search.trim() !== '' || role !== ALL
+  const filtersActive = search.trim() !== '' || role !== ALL || status !== 'active'
 
   const resetFilters = () => {
     setSearch('')
     setRole(ALL)
+    setStatus('active')
+  }
+
+    /**
+   * The AI's output arrives here already validated by the server. All this
+   * does is write it into the same state a mouse click writes to — which is
+   * why no part of the page below this needs to know the AI exists.
+   */
+  const applySuggestion = (s: FilterSuggestion) => {
+    const touchesFilters =
+      s.search !== null || s.type !== null || s.status !== null ||
+      s.sort_by !== null || s.sort_order !== null
+
+    // Nothing supported in the request (e.g. "users from Beirut"). Changing
+    // nothing is better than silently wiping the admin's current view.
+    if (!touchesFilters) return
+
+    // Whole-state replacement: null resets to the page default.
+    setSearch(s.search ?? '')
+    setRole(s.type ?? ALL)
+    setStatus(s.status ?? 'active')
+    setSortBy(s.sort_by ?? 'created_at')
+    setSortOrder(s.sort_order ?? 'desc')
+    setPage(1)
   }
 
   const handleSort = (key: string, order: SortOrder) => {
@@ -235,6 +262,8 @@ export const Users = () => {
       />
 
       <Card className="p-4">
+        <NaturalLanguageFilter onApply={applySuggestion} />
+        <div className="my-4 border-t border-line" />
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <SearchInput
             className="lg:max-w-sm lg:flex-1"
@@ -255,6 +284,22 @@ export const Users = () => {
               ]}
             />
           </div>
+
+           <div className="lg:w-48">
+            <Select
+              label="Status"
+              containerClassName="[&>label]:sr-only"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as UserStatusFilter)}
+              options={[
+                { value: 'active', label: 'Active' },
+                { value: 'deactivated', label: 'Deactivated' },
+                { value: 'all', label: 'All statuses' },
+              ]}
+            />
+          </div>
+
+
           {filtersActive && (
             <Button variant="ghost" onClick={resetFilters} className="lg:ml-auto">
               Clear filters

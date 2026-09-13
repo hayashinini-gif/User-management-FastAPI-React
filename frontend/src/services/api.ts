@@ -9,6 +9,7 @@ import type {
   UserStatusFilter,
   UserRole,
   UserSortKey,
+  FilterSuggestion,
 } from '../types/user'
 
 const baseURL =
@@ -119,6 +120,16 @@ export const usersAPI = {
   changeRole: (id: number, type: UserRole) => api.put<User>(`/users/${id}/role`, { type }),
   softDelete: (id: number) => api.delete<void>(`/users/${id}`),
   restore: (id: number) => api.post<User>(`/users/${id}/restore`),
+
+    /**
+   * Natural language -> validated filter parameters.
+   *
+   * The AI call happens server-side. The API key never reaches the browser,
+   * which is the whole reason this endpoint exists rather than calling
+   * Anthropic directly from here.
+   */
+  interpretFilters: (query: string) =>
+    api.post<FilterSuggestion>('/users/interpret-filters', { query }),
 }
 
 /* ── Admin-only mutations ───────────────────────────────────────────────── */

@@ -1,0 +1,16 @@
+# Store every text file with LF line endings in the repository.
+#
+# Without this, a file written on Windows (CRLF) and one written on
+# Linux/macOS (LF) look completely different to git — every line shows as
+# changed even when nothing was edited. This normalises them so `git status`
+# stays clean no matter which machine touched the file.
+* text=auto eol=lf
+
+# Binary files git must never try to normalise
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.db   binary
